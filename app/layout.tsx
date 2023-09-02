@@ -1,11 +1,13 @@
 import { Analytics } from "@vercel/analytics/react";
 import { Metadata } from "next";
 import "../styles/globals.css";
+import Script from "next/script";
+import Footer from "../components/Footer";
 
-let title = "Dream Room Generator";
-let description = "Generate your dream room in seconds.";
-let ogimage = "https://roomgpt-demo.vercel.app/og-image.png";
-let sitename = "roomGPT.io";
+let title = "Checky";
+let description = "Checky is a chrome extension for summarizing text.";
+let ogimage = "http://checky.im/checky-icon-bg.png";
+let sitename = "checky.im";
 
 export const metadata: Metadata = {
   title,
@@ -17,16 +19,10 @@ export const metadata: Metadata = {
     images: [ogimage],
     title,
     description,
-    url: "https://roomgpt-demo.vercel.app",
+    url: "http://checky.im",
     siteName: sitename,
-    locale: "en_US",
+    locale: "ko_KR",
     type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    images: [ogimage],
-    title,
-    description,
   },
 };
 
@@ -37,10 +33,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-[#17181C] text-white">
+      <body className="bg-[#ffffff] text-white">
         {children}
         <Analytics />
+        <Footer />
       </body>
+      <Script src="../path/to/flowbite/dist/flowbite.min.js" />
     </html>
   );
 }
