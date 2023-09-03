@@ -9,15 +9,25 @@ export default function Header() {
           Checky
         </h1>
       </Link>
-      <a
-        className="flex w- items-center justify-center space-x-2 rounded-full border border-[#74aa9c] text-white px-3 py-1 text-sm shadow-md hover:opacity-80 bg-[#74aa9c] font-medium transition"
-        href="https://chat.openai.com/"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <Github />
-        <p>chat with GPT</p>
-      </a>
+      <div className="flex items-center gap-2">
+        <a
+          className="flex items-center justify-center space-x-2 rounded-full border border-[#74aa9c] text-white px-3 py-1 text-sm shadow-md hover:opacity-80 bg-[#74aa9c] font-medium transition"
+          href="https://chat.openai.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Github />
+          <p>chat with GPT</p>
+        </a>
+        <Link
+          className="text-blue-600 hover:text-blue-500 transition hover:underline"
+          target="_blank"
+          rel="noopener noreferrer"
+          href="/dist.zip"
+        >
+          .zip download
+        </Link>
+      </div>
     </header>
   );
 }
