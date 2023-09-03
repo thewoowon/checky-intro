@@ -144,7 +144,7 @@ export default function HomePage() {
                 href="https://chrome.google.com/webstore/category/extensions?hl=ko"
                 type=""
               >
-                구글 웹스토어 바로하기
+                구글 웹스토어 바로가기
               </Link>
               <div className="font-semibold text-xl  py-2 my-4 rounded-lg w-96">
                 <Image
@@ -183,28 +183,28 @@ export default function HomePage() {
             3 단계: Checky가 도움이 되는 상황
           </div>
           <div className="flex flex-col justify-center items-center gap-5">
-            <div {...scrollFadeIn6} className="text-blue-600 text-5xl">
+            <div {...scrollFadeIn6} className="text-blue-600 text-4xl">
               광고성 글이 의심될 때 🤔
             </div>
-            <div {...scrollFadeIn7} className="text-blue-600 text-4xl">
+            <div {...scrollFadeIn7} className="text-blue-600 text-3xl">
               링크로 이동하기 싫지만 알고 싶을 때 😁
             </div>
-            <div {...scrollFadeIn8} className="text-blue-600 text-5xl">
+            <div {...scrollFadeIn8} className="text-blue-600 text-4xl">
               간단히 요약된 글을 읽고 싶을 때 🧐
             </div>
-            <div {...scrollFadeIn9} className="text-blue-600 text-4xl">
+            <div {...scrollFadeIn9} className="text-blue-600 text-3xl">
               여러 소스의 내용을 확인하고 싶을 때 🥳
             </div>
-            <div {...scrollFadeIn10} className="text-blue-600 text-5xl">
+            <div {...scrollFadeIn10} className="text-blue-600 text-4xl">
               시간을 절약하고 싶을 때 ⏰
             </div>
-            <div {...scrollFadeIn11} className="text-blue-600 text-4xl">
+            <div {...scrollFadeIn11} className="text-blue-600 text-3xl">
               나의 아카이브가 필요할 때 🫙
             </div>
-            <div {...scrollFadeIn12} className="text-blue-600 text-5xl">
+            <div {...scrollFadeIn12} className="text-blue-600 text-4xl">
               gpt와 빠른 채팅이 필요할 때 🤖
             </div>
-            <div {...scrollFadeIn13} className="text-blue-600 text-4xl">
+            <div {...scrollFadeIn13} className="text-blue-600 text-3xl">
               더 많은 기능을 사용하고 싶을 때 🤩
             </div>
           </div>
