@@ -32,3 +32,24 @@
   );
   padding: 20px 10px;
 }
+
+.noticeSwiper {
+  position: relative;
+  height: 150px;
+}
+
+.noticeSwiper .swiper-button-prev,
+.noticeSwiper .swiper-button-next {
+  position: absolute;
+  bottom: 0;
+  top: auto;
+  color: black;
+  opacity: 0.5;
+  transition: all 0.3s cubic-bezier(0, 0, 0.5, 1);
+  scale: 0.5;
+}
+.noticeSwiper .swiper-button-prev:hover,
+.noticeSwiper .swiper-button-next:hover {
+  opacity: 1;
+  scale: 0.6;
+}
