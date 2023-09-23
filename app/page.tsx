@@ -29,7 +29,12 @@ export default function HomePage() {
   const scrollFadeIn12 = useScrollFadeInRight();
   const scrollFadeIn13 = useScrollFadeIn(0.7, "50%");
 
-  const scrollToSection = () => {
+  const scrollToSection = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    // 컨텍스트 팝업을 위한 x, y 좌표
+    const x = e.pageX;
+    const y = e.pageY;
+
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }

@@ -5,35 +5,70 @@ import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
-import { Navigation, Autoplay } from "swiper/modules";
+import { Navigation } from "swiper/modules";
+import parse from "html-react-parser";
+
+export type CheckyResponseType = {
+  code: number;
+  message: string;
+  data: {
+    summaryContent: string;
+    tags: string[];
+    words: string[];
+    ads: string[];
+  };
+};
 
 type Tag = {
+  id: number;
   name: string;
   color: string;
 };
 
-const tags: Tag[] = [
-  {
-    name: "AI",
-    color: "#F87171",
-  },
-  {
-    name: "GPT-3",
-    color: "#FBBF24",
-  },
-  {
-    name: "NLP",
-    color: "#60A5FA",
-  },
-  {
-    name: "Chrome Extension",
-    color: "#34D399",
-  },
+const colorList = [
+  "#F87171",
+  "#FBBF24",
+  "#60A5FA",
+  "#34D399",
+  "#F472B6",
+  "#FCD34D",
+  "#93C5FD",
+  "#6EE7B7",
+  "#F472B6",
+  "#FCD34D",
+  "#93C5FD",
+  "#6EE7B7",
 ];
 
 const Playground = () => {
+  const [loading, setLoading] = useState(false);
   const [checked, setChecked] = useState(false);
   const [input, setInput] = useState("");
+  const [checkyResult, setCheckyResult] = useState<{
+    summaryContent: string;
+    tags: Tag[];
+    words: string[];
+    ads: string[];
+  }>({
+    summaryContent: "",
+    tags: [],
+    words: [],
+    ads: [],
+  });
+
+  function wrapSpecificTextInSpan(
+    inputString: string,
+    targetText: string
+  ): string {
+    // 정규식을 사용하여 대상 문자열을 검색하고 각 매치를 <span> 태그로 감싼다.
+    const regex = new RegExp(targetText, "g");
+    const wrappedString = inputString.replace(
+      regex,
+      `<span style="font-weight: bold; color: #3f75e5">${targetText}</span>`
+    );
+
+    return wrappedString;
+  }
 
   async function requestSummaryApi(body: { url: string; type: number }) {
     const baseUrl = "/api/analysis";
@@ -45,10 +80,8 @@ const Playground = () => {
     const queryString = new URLSearchParams(params).toString(); // url에 쓰기 적합한 querySting으로 return 해준다.
     const requrl = `${baseUrl}?${queryString}`; // 완성된 요청 url.
 
-    await fetch(requrl, {
+    return await fetch(requrl, {
       method: "GET",
-    }).then((res) => {
-      console.log(res);
     });
   }
 
@@ -60,16 +93,56 @@ const Playground = () => {
   };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    setLoading(true);
     e.preventDefault();
     if (!isUrl(input)) {
       alert("올바른 URL을 입력해주세요.");
       return;
     }
-    await requestSummaryApi({ url: input, type: checked ? 1 : 0 }).then(
-      (res) => {
-        console.log(res);
+    const result = await requestSummaryApi({
+      url: input,
+      type: checked ? 1 : 0,
+    }).then((res) => {
+      if (res.status === 200) {
+        return res.json();
+      } else {
+        alert("요청에 실패했습니다.");
+        return {
+          summaryContent: "",
+          tags: [],
+          words: [],
+          ads: [],
+        };
       }
-    );
+    });
+
+    if (!result) return;
+
+    const { summaryContent, tags, words, ads } = result;
+
+    let replaceString = summaryContent as string;
+    replaceString = replaceString.replace(/"/g, "");
+    replaceString = replaceString.replace(/\\n/g, "<br/><br/>");
+
+    const tagList: Tag[] = [];
+    tags.forEach((item: string, index: number) => {
+      replaceString = wrapSpecificTextInSpan(replaceString, item);
+      const newTag = {
+        name: item.trim(),
+        // color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        color: colorList[index % colorList.length],
+        id: index,
+      };
+      tagList.push(newTag);
+    });
+
+    setLoading(false);
+    setCheckyResult({
+      summaryContent: replaceString,
+      tags: tagList,
+      words,
+      ads,
+    });
   };
   return (
     <div className="flex max-w-6xl mx-auto flex-col items-center justify-start py-2 min-h-screen">
@@ -94,7 +167,7 @@ const Playground = () => {
             className="px-4 py-2 bg-orange-500 text-white font-bold rounded-lg"
             type="submit"
           >
-            검색
+            {loading ? "loading" : "검색"}
           </button>
         </form>
         <div className="w-[550px] text-black border-[#b7634f] border rounded-lg px-8 py-4 bg-white">
@@ -147,7 +220,7 @@ const Playground = () => {
             * GPT 모델과 Checky의 규칙 기반으로 분석되고 있어요.
           </div>
           <div className="flex gap-2 text-sm text-zinc-500 py-6">
-            {tags.map((tag, index) => (
+            {checkyResult.tags.map((tag, index) => (
               <div
                 key={index}
                 className="flex items-center text-xs font-bold text-zinc-500 px-4 py-2 rounded-full"
@@ -157,10 +230,16 @@ const Playground = () => {
               </div>
             ))}
           </div>
-          <div className="flex flex-col items-start gap-2">
-            <div>1. 멜라토닌과 마그네슘은 숙면 개선에 도움.</div>
-            <div>2. 밀크 소재와 발레리안 루트는 자연적인 수면 보조물질.</div>
-            <div>3. 비타민 B6는 신경 전달 물질 생성과 수면 향상에 연결</div>
+          <div
+            style={{
+              width: "100%",
+              borderRadius: "4px",
+              textAlign: "left",
+              lineHeight: 1.3,
+              fontSize: "14px",
+            }}
+          >
+            {parse(checkyResult.summaryContent)}
           </div>
           <div>
             <Swiper
@@ -174,54 +253,18 @@ const Playground = () => {
               centeredSlidesBounds={true}
               centeredSlides={true}
             >
-              <SwiperSlide>
-                <div className="w-full h-24 bg-white rounded-lg border-[#b7634f] border p-2">
-                  <div className="flex text-sm underline pb-2">멜라토닌</div>
-                  <div className="flex text-xs text-left">
-                    멜라토닌(영어: melatonin)은 활동일 주기를 조절하는 호르..
+              {checkyResult.tags.map((tag, index) => (
+                <SwiperSlide key={index}>
+                  <div className="w-full h-24 bg-white rounded-lg border-[#b7634f] border p-2">
+                    <div className="flex text-sm underline pb-2">
+                      {tag.name}
+                    </div>
+                    <div className="flex text-xs text-left">
+                      멜라토닌(영어: melatonin)은 활동일 주기를 조절하는 호르..
+                    </div>
                   </div>
-                </div>
-              </SwiperSlide>
-              <SwiperSlide>
-                <div className="w-full h-24 bg-white rounded-lg border-[#b7634f] border p-2">
-                  <div className="flex text-sm underline pb-2">마그네슘</div>
-                  <div className="flex text-xs text-left">
-                    마그네슘(영어: melatonin)은 활동일 주기를 조절하는 호르..
-                  </div>
-                </div>
-              </SwiperSlide>
-              <SwiperSlide>
-                <div className="w-full h-24 bg-white rounded-lg border-[#b7634f] border p-2">
-                  <div className="flex text-sm underline pb-2">B6</div>
-                  <div className="flex text-xs text-left">
-                    멜라토닌(영어: melatonin)은 활동일 주기를 조절하는 호르..
-                  </div>
-                </div>
-              </SwiperSlide>
-              <SwiperSlide>
-                <div className="w-full h-24 bg-white rounded-lg border-[#b7634f] border p-2">
-                  <div className="flex text-sm underline pb-2">멜라토닌</div>
-                  <div className="flex text-xs text-left">
-                    멜라토닌(영어: melatonin)은 활동일 주기를 조절하는 호르..
-                  </div>
-                </div>
-              </SwiperSlide>
-              <SwiperSlide>
-                <div className="w-full h-24 bg-white rounded-lg border-[#b7634f] border p-2">
-                  <div className="flex text-sm underline pb-2">마그네슘</div>
-                  <div className="flex text-xs text-left">
-                    멜라토닌(영어: melatonin)은 활동일 주기를 조절하는 호르..
-                  </div>
-                </div>
-              </SwiperSlide>
-              <SwiperSlide>
-                <div className="w-full h-24 bg-white rounded-lg border-[#b7634f] border p-2">
-                  <div className="flex text-sm underline pb-2">B6</div>
-                  <div className="flex text-xs text-left">
-                    멜라토닌(영어: melatonin)은 활동일 주기를 조절하는 호르..
-                  </div>
-                </div>
-              </SwiperSlide>
+                </SwiperSlide>
+              ))}
             </Swiper>
             <div></div>
           </div>
