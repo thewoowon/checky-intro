@@ -6,7 +6,7 @@ import Footer from "../components/Footer";
 
 let title = "Checky";
 let description = "Checky is a chrome extension for summarizing text.";
-let ogimage = "http://checky.im/checky-icon-bg.png";
+let ogimage = "https://checky.im/checky-icon-bg.png";
 let sitename = "checky.im";
 
 export const metadata: Metadata = {
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     images: [ogimage],
     title,
     description,
-    url: "http://checky.im",
+    url: "https://checky.im",
     siteName: sitename,
     locale: "ko_KR",
     type: "website",
