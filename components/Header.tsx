@@ -18,6 +18,21 @@ export default function Header() {
             Playground
           </div>
         </Link>
+        <Link href="/" className="flex space-x-2 items-center pt-1 pb-1">
+          <div className="sm:text-xl text-md font-bold ml-1 tracking-tight text-blue-600 hover:text-blue-700">
+            Docs
+          </div>
+        </Link>
+        <Link href="/" className="flex space-x-2 items-center pt-1 pb-1">
+          <div className="sm:text-xl text-md font-bold ml-1 tracking-tight text-blue-600 hover:text-blue-700">
+            Pricing
+          </div>
+        </Link>
+        <Link href="/" className="flex space-x-2 items-center pt-1 pb-1">
+          <div className="sm:text-xl text-md font-bold ml-1 tracking-tight text-blue-600 hover:text-blue-700">
+            About
+          </div>
+        </Link>
       </div>
       <div className="flex items-center gap-2">
         <a

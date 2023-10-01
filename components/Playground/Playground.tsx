@@ -12,10 +12,10 @@ export type CheckyResponseType = {
   code: number;
   message: string;
   data: {
+    title: string;
+    adsPercent: number;
     summaryContent: string;
     tags: string[];
-    words: string[];
-    ads: string[];
   };
 };
 
@@ -45,15 +45,15 @@ const Playground = () => {
   const [checked, setChecked] = useState(false);
   const [input, setInput] = useState("");
   const [checkyResult, setCheckyResult] = useState<{
+    title: string;
+    adsPercent: number;
     summaryContent: string;
     tags: Tag[];
-    words: string[];
-    ads: string[];
   }>({
+    title: "",
+    adsPercent: 0,
     summaryContent: "",
     tags: [],
-    words: [],
-    ads: [],
   });
 
   function wrapSpecificTextInSpan(
@@ -97,15 +97,50 @@ const Playground = () => {
     e.preventDefault();
     if (!isUrl(input)) {
       alert("올바른 URL을 입력해주세요.");
+      setLoading(false);
       return;
     }
-    const result = await requestSummaryApi({
+    await requestSummaryApi({
       url: input,
       type: checked ? 1 : 0,
     }).then((res) => {
       if (res.status === 200) {
-        return res.json();
+        parseSummaryStreamResult(res, (chunk) => {
+          if (chunk.includes("data: [DONE]")) return;
+          if (!isJSON(chunk)) return;
+          const parsedChunk = JSON.parse(chunk);
+
+          const { title, summaryContent, tags, adsPercent } = parsedChunk.data;
+
+          let replaceString = summaryContent as string;
+          replaceString = replaceString?.replace(/"/g, "");
+          replaceString = replaceString?.replace(/\\n/g, "<br/><br/>");
+
+          const tagList: Tag[] = [];
+          tags.forEach((item: string, index: number) => {
+            replaceString = wrapSpecificTextInSpan(replaceString, item);
+            const newTag = {
+              name: item.trim(),
+              // color: COLORS[Math.floor(Math.random() * COLORS.length)],
+              color: colorList[index % colorList.length],
+              id: index,
+            };
+            tagList.push(newTag);
+          });
+
+          setLoading(false);
+          setCheckyResult({
+            title,
+            summaryContent: replaceString,
+            tags: tagList,
+            adsPercent,
+          });
+        }).then((result) => {
+          setLoading(false);
+          return result;
+        });
       } else {
+        setLoading(false);
         alert("요청에 실패했습니다.");
         return {
           summaryContent: "",
@@ -116,34 +151,69 @@ const Playground = () => {
       }
     });
 
-    if (!result) return;
-
-    const { summaryContent, tags, words, ads } = result;
-
-    let replaceString = summaryContent as string;
-    replaceString = replaceString.replace(/"/g, "");
-    replaceString = replaceString.replace(/\\n/g, "<br/><br/>");
-
-    const tagList: Tag[] = [];
-    tags.forEach((item: string, index: number) => {
-      replaceString = wrapSpecificTextInSpan(replaceString, item);
-      const newTag = {
-        name: item.trim(),
-        // color: COLORS[Math.floor(Math.random() * COLORS.length)],
-        color: colorList[index % colorList.length],
-        id: index,
-      };
-      tagList.push(newTag);
-    });
-
-    setLoading(false);
-    setCheckyResult({
-      summaryContent: replaceString,
-      tags: tagList,
-      words,
-      ads,
+    await fetch("/api/keywords", {
+      method: "GET",
+    }).then((res) => {
+      console.log(res);
     });
   };
+
+  async function parseSummaryStreamResult(
+    response: Response,
+    onDelta?: (chunk: string) => unknown
+  ) {
+    const reader = response.body
+      ?.pipeThrough(new TextDecoderStream())
+      .getReader();
+
+    let result = "";
+    while (reader) {
+      const { value, done } = await reader.read();
+      if (done) {
+        break;
+      }
+      if (value.includes("data: [DONE]")) {
+        break;
+      }
+
+      const lines = value.split("\n\n").filter(Boolean);
+      const chunks = lines
+        .map((line) => line.substring(5).trim())
+        .map((line) => line.replace(/\\n/g, "<br/>"))
+        // non-whitespace character를 지우고, 빈 문자열이 아닌 것만 남긴다.
+        .filter(Boolean);
+
+      chunks.forEach((chunk) => {
+        result += chunk;
+        onDelta?.(chunk);
+      });
+    }
+    return result;
+  }
+
+  const isJSON = (str: string) => {
+    try {
+      JSON.parse(str);
+    } catch (e) {
+      return false;
+    }
+    return true;
+  };
+
+  const progressText = (adsPercent: number) => {
+    if (adsPercent === 0) {
+      return "이 글은 광고일리가 없어요.";
+    } else if (adsPercent < 40) {
+      return "이 글은 광고일 가능성이 낮아요.";
+    } else if (adsPercent < 60) {
+      return "이 글은 광고일 확률이 높아요.";
+    } else if (adsPercent < 100) {
+      return "🔪이 글은 99% 광고협찬 글이에요.🔪";
+    } else {
+      return "광고가 너무 많아요!";
+    }
+  };
+
   return (
     <div className="flex max-w-6xl mx-auto flex-col items-center justify-start py-2 min-h-screen">
       <Header />
@@ -206,21 +276,23 @@ const Playground = () => {
             </label>
           </div>
           <div className="flex text-xl font-bold py-4">
-            # 잠 잘오는 법 숙면영양제 섭취해본 후기
+            # {checkyResult.title}
           </div>
           <div className="flex text-sm text-zinc-500">Checky 측정 결과</div>
-          <div className="flex text-md font-bold">광고일 가능성이 낮아요</div>
+          <div className="flex text-md font-bold">
+            {progressText(checkyResult.adsPercent)}
+          </div>
           <div className="w-full bg-gray-200 rounded-full h-2.5 mt-4 dark:bg-gray-700">
             <div
               className="bg-orange-500 h-2.5 rounded-full dark:bg-orange-400"
-              style={{ width: "45%" }}
+              style={{ width: `${checkyResult.adsPercent}%` }}
             ></div>
           </div>
           <div className="flex justify-end text-zinc-400 py-2 text-xs">
             * GPT 모델과 Checky의 규칙 기반으로 분석되고 있어요.
           </div>
           <div className="flex gap-2 text-sm text-zinc-500 py-6">
-            {checkyResult.tags.map((tag, index) => (
+            {checkyResult.tags?.map((tag, index) => (
               <div
                 key={index}
                 className="flex items-center text-xs font-bold text-zinc-500 px-4 py-2 rounded-full"
@@ -239,7 +311,7 @@ const Playground = () => {
               fontSize: "14px",
             }}
           >
-            {parse(checkyResult.summaryContent)}
+            {parse(checkyResult.summaryContent || "")}
           </div>
           <div>
             <Swiper
@@ -253,7 +325,7 @@ const Playground = () => {
               centeredSlidesBounds={true}
               centeredSlides={true}
             >
-              {checkyResult.tags.map((tag, index) => (
+              {checkyResult.tags?.map((tag, index) => (
                 <SwiperSlide key={index}>
                   <div className="w-full h-24 bg-white rounded-lg border-[#b7634f] border p-2">
                     <div className="flex text-sm underline pb-2">

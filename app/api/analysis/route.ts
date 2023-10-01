@@ -1,11 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
-
 async function getCheckyResponse({ url, type }: { url: string; type: number }) {
   try {
-    const endpoint = new URL("http://13.124.34.149:8080");
+    const endpoint = new URL("http://13.124.34.149:8080/v1");
 
-    endpoint.pathname = "/crawling/result";
+    endpoint.pathname = "/crawling/result/stream";
 
     endpoint.searchParams.append("url", url);
     endpoint.searchParams.append("type", type.toString());
@@ -39,27 +36,8 @@ export async function GET(request: Request) {
   const url = searchParams.get("url");
   const type = searchParams.get("type");
 
-  const res: CheckyResponseType = await getCheckyResponse({
+  return await getCheckyResponse({
     url: url as string,
     type: Number(type),
-  }).then((response) => response?.json());
-
-  console.log(res);
-
-  if (!res || res.code !== 0) {
-    return new Response("요청에 실패했습니다.", {
-      status: 404,
-    });
-  }
-
-  if (!res.data.summaryContent) {
-    return new Response("요약된 내용이 없습니다.", {
-      //  서버 내부 오류
-      status: 500,
-    });
-  }
-
-  return new Response(JSON.stringify(res.data), {
-    status: 200,
   });
 }
