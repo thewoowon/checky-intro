@@ -18,11 +18,20 @@ const PrivacyPage = () => {
   return (
     <div className="flex max-w-6xl mx-auto flex-col items-center justify-start py-2 min-h-screen text-black">
       <Header />
-      <div className="flex flex-col max-w-3xl">
-        <Typography className="text-xl mt-6">
+      <div className="flex flex-col max-w-3xl mt-6">
+        <Typography
+          sx={{
+            fontSize: "2rem",
+            fontWeight: "bold",
+          }}
+        >
           Checky 개인정보 처리방침
         </Typography>
-        <Typography className="py-2">
+        <Typography
+          sx={{
+            mt: 2,
+          }}
+        >
           '체키'은(는) 개인정보 보호법 제30조에 따라 정보주체의 개인정보를
           보호하고 이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 하기
           위하여 다음과 같이 개인정보 처리지침을 수립․공개합니다.
